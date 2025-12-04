@@ -1,168 +1,206 @@
+# ============================================
+# app.py — MD5 Suite Futuristic UI Edition
+# ============================================
+
 import streamlit as st
-import backend as bk  # Import file backend yang tadi dibuat
 import time
 import pandas as pd
+import backend as bk
 
-# --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="MD5 Ultimate Suite", page_icon="☢️", layout="wide")
+# ===============================
+# PAGE CONFIG
+# ===============================
+st.set_page_config(
+    page_title="MD5 Ultimate Suite",
+    page_icon="🛡️",
+    layout="wide",
+)
 
-# --- CSS MODERN (DIPERBARUI) ---
+# ===============================
+# FUTURISTIC CSS (Neon + Glass)
+# ===============================
 st.markdown("""
 <style>
-    :root { --primary: #A8DADC; --bg: #1D3557; --card: #243E63; }
-    .stApp { background-color: var(--bg); color: #F1FAEE; }
-    
-    /* Card Style */
-    .feature-card {
-        background-color: var(--card);
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid rgba(168,218,220,0.1);
-        margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+
+    /* Background gradient */
+    .stApp {
+        background: radial-gradient(circle at top,
+            #0a0f1f 0%, 
+            #0a0f1f 40%,
+            #030611 100%);
+        color: #d9e6ff;
     }
-    
-    /* Metrics */
-    [data-testid="stMetricValue"] { color: #E63946 !important; }
-    
-    /* Table styling */
-    [data-testid="stDataFrame"] { border: 1px solid #457B9D; border-radius: 10px; }
-    
+
+    /* Glassmorphism card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 16px rgba(0, 150, 255, 0.15);
+        margin-bottom: 15px;
+    }
+
+    /* Neon text */
+    .neon-title {
+        font-size: 34px;
+        font-weight: 700;
+        color: #7cc7ff;
+        text-shadow: 0 0 10px rgba(0,150,255,0.8);
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab"] {
+        background: rgba(255,255,255,0.08);
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: #b8d4ff;
+        font-weight: 600;
+    }
+    .stTabs [aria-selected="true"] {
+        background: #148AFF !important;
+        color: white !important;
+        box-shadow: 0 0 10px #148AFF;
+    }
+
     /* Sidebar */
-    [data-testid="stSidebar"] { background-color: #162945; }
+    [data-testid="stSidebar"] {
+        background: rgba(0, 30, 60, 0.6);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Table */
+    [data-testid="stDataFrame"] {
+        border-radius: 10px !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
-# ===== SIDEBAR NAVIGATION =====
+# ===============================
+# SIDEBAR
+# ===============================
 with st.sidebar:
-    st.title("☢️ MD5 Suite")
-    st.markdown("---")
-    menu = st.radio("Pilih Mode:", 
-        ["🏠 Single Check", "🚀 Batch Processor", "🦠 Malware Intel", "🔓 Hash Cracker (Demo)"])
-    
-    st.markdown("---")
-    st.info("💡 **Tips:** Gunakan Batch Processor untuk mengaudit satu folder sekaligus.")
+    st.markdown("<h1 style='color:#93c7ff;'>🛡️ MD5 Suite</h1>", unsafe_allow_html=True)
+    st.caption("Futuristic Edition v3.0")
 
-# ===== HEADER =====
-st.title(f"{menu}")
-st.write("Professional File Integrity & Security Tool")
-st.divider()
+    menu = st.radio(
+        "Navigation",
+        ["🏠 Single Check", "🚀 Batch Processor", "🦠 Malware Intel", "🔓 Hash Cracker"]
+    )
+
+    st.markdown("---")
+    st.caption("Created with ❤️ Streamlit")
+
+
+# ===============================
+# DYNAMIC HEADER
+# ===============================
+st.markdown(f"<div class='neon-title'>{menu}</div>", unsafe_allow_html=True)
+st.write("")
 
 # =========================================================
-# MODE 1: SINGLE CHECK (File vs File)
+# MODE 1 — SINGLE CHECK
 # =========================================================
 if menu == "🏠 Single Check":
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("### 📄 File Referensi")
-        f1 = st.file_uploader("Upload File Asli", key="f1")
-    with col2:
-        st.markdown("### 📄 File Target")
-        f2 = st.file_uploader("Upload File Banding", key="f2")
 
-    if f1 and f2:
-        st.markdown("---")
-        with st.spinner("Analyzing bitstream..."):
-            h1, s1 = bk.calculate_md5(f1)
-            h2, s2 = bk.calculate_md5(f2)
-            time.sleep(0.3) # Efek visual
+    tab1, tab2 = st.tabs(["📂 File vs File", "📝 File vs MD5"])
 
-        # Metrics Speed
-        m1, m2, m3 = st.columns(3)
-        m1.metric("File 1 Speed", f"{s1:.1f} MB/s")
-        m2.metric("File 2 Speed", f"{s2:.1f} MB/s")
-        m3.metric("Diff Status", "MATCH" if h1==h2 else "DIFFERENT")
+    # --- FILE VS FILE ---
+    with tab1:
+        c1, c2 = st.columns(2)
 
-        # Visual Result
-        if h1 == h2:
-            st.success(f"✅ **INTEGRITY CONFIRMED**: Hash {h1}")
-            st.balloons()
-        else:
-            st.error("❌ **INTEGRITY FAILED**: File tidak sama.")
-            c_res1, c_res2 = st.columns(2)
-            c_res1.code(h1, language="text")
-            c_res2.code(h2, language="text")
+        with c1:
+            st.markdown("<div class='glass-card'>Upload File Asli</div>", unsafe_allow_html=True)
+            f1 = st.file_uploader("File A", key="fileA")
+
+        with c2:
+            st.markdown("<div class='glass-card'>Upload File Target</div>", unsafe_allow_html=True)
+            f2 = st.file_uploader("File B", key="fileB")
+
+        if f1 and f2:
+            with st.spinner("🔍 Processing..."):
+                h1, s1 = bk.calculate_md5(f1)
+                h2, s2 = bk.calculate_md5(f2)
+
+            if h1 == h2:
+                st.success("✅ File IDENTIK (MD5 MATCH)")
+                st.balloons()
+            else:
+                st.error("❌ File BERBEDA (MD5 MISMATCH)")
+
+            st.code(f"MD5 A: {h1}")
+            st.code(f"MD5 B: {h2}")
+
+    # --- FILE vs TEXT ---
+    with tab2:
+        file = st.file_uploader("Upload File", key="fileMd5")
+        md5_text = st.text_input("Masukkan MD5")
+
+        if file and md5_text:
+            file_hash, _ = bk.calculate_md5(file)
+            st.write("Hash File:", file_hash)
+
+            if file_hash == md5_text.lower().strip():
+                st.success("🎉 MD5 MATCH")
+            else:
+                st.error("⚠️ Tidak cocok")
+
 
 # =========================================================
-# MODE 2: BATCH PROCESSOR (Fitur Baru Terbesar)
+# MODE 2 — BATCH PROCESSOR
 # =========================================================
 elif menu == "🚀 Batch Processor":
-    st.markdown("<div class='feature-card'>Fitur ini memungkinkan Anda memeriksa puluhan file sekaligus dan mengekspor laporannya.</div>", unsafe_allow_html=True)
-    
-    files = st.file_uploader("Drag & Drop Banyak File Di Sini", accept_multiple_files=True)
-    
+
+    st.markdown("<div class='glass-card'>Upload banyak file sekaligus untuk audit massal</div>", unsafe_allow_html=True)
+    files = st.file_uploader("Upload multiple files", accept_multiple_files=True)
+
     if files:
-        if st.button(f"🚀 Proses {len(files)} File"):
-            progress_bar = st.progress(0)
-            
-            # Proses Backend
-            df = bk.process_batch(files)
-            progress_bar.progress(100)
-            
-            # Tampilkan Tabel
-            st.subheader("📊 Hasil Audit Hash")
+        if st.button("🚀 Mulai Proses"):
+            with st.spinner("Processing..."):
+                df = bk.process_batch(files)
+
+            st.success("Selesai!")
             st.dataframe(df, use_container_width=True)
-            
-            # Download CSV
-            csv = bk.convert_df_to_csv(df)
-            st.download_button(
-                label="⬇️ Download Laporan CSV",
-                data=csv,
-                file_name="md5_batch_report.csv",
-                mime="text/csv",
-                type="primary"
-            )
+
+            st.download_button("⬇️ Download CSV", bk.convert_df_to_csv(df), "report.csv")
+
 
 # =========================================================
-# MODE 3: MALWARE INTEL (VirusTotal)
+# MODE 3 — MALWARE INTEL
 # =========================================================
 elif menu == "🦠 Malware Intel":
-    st.markdown("<div class='feature-card'>Cek apakah hash file Anda dikenali sebagai virus oleh database global.</div>", unsafe_allow_html=True)
-    
-    col_virus_1, col_virus_2 = st.columns([1, 2])
-    
-    with col_virus_1:
-        f_virus = st.file_uploader("Upload File Mencurigakan")
-    
-    with col_virus_2:
-        st.info("Atau paste hash MD5 jika sudah punya:")
-        hash_input = st.text_input("MD5 Hash", placeholder="Paste hash disini...")
 
-    final_hash = None
-    if f_virus:
-        final_hash, _ = bk.calculate_md5(f_virus)
-        st.success(f"File Hash Detected: `{final_hash}`")
-    elif hash_input:
-        final_hash = hash_input.strip()
+    file = st.file_uploader("Upload file mencurigakan")
+    md5_text = st.text_input("Atau masukkan hash")
 
-    if final_hash:
-        vt_link = bk.get_virustotal_link(final_hash)
-        st.markdown(f"""
-        ### 🔍 Analisis Keamanan
-        Klik tombol di bawah untuk membuka **VirusTotal Search**. Jika file ini adalah virus yang sudah dikenal, VirusTotal akan memberitahu Anda.
-        """)
-        st.link_button("🛡️ Cek di VirusTotal Database", vt_link)
+    if file:
+        md5_hash, _ = bk.calculate_md5(file)
+    elif md5_text:
+        md5_hash = md5_text
+    else:
+        md5_hash = None
+
+    if md5_hash:
+        st.info(f"MD5: `{md5_hash}`")
+        vt_link = bk.get_virustotal_link(md5_hash)
+        st.markdown(f"[🔍 Cek VirusTotal]({vt_link})")
+
 
 # =========================================================
-# MODE 4: HASH CRACKER (Demo Password Lemah)
+# MODE 4 — HASH CRACKER
 # =========================================================
-elif menu == "🔓 Hash Cracker (Demo)":
-    st.markdown("<div class='feature-card'>Mendemonstrasikan bahaya menggunakan password lemah. Sistem akan mencocokkan hash dengan database password umum.</div>", unsafe_allow_html=True)
-    
-    crack_input = st.text_input("Masukkan MD5 Hash (Contoh: e10adc3949ba59abbe56e057f20f883e)", help="Coba hash dari '123456'")
-    
-    if st.button("🔓 Coba Pecahkan"):
-        if not crack_input:
-            st.warning("Masukkan hash dulu.")
+elif menu == "🔓 Hash Cracker":
+
+    hash_input = st.text_input("Masukkan MD5 hash")
+    if st.button("🔓 Crack"):
+
+        result = bk.check_weak_password(hash_input)
+
+        if result:
+            st.error("⚠️ CRACKED! Password ditemukan:")
+            st.code(result)
         else:
-            with st.spinner("Melakukan Dictionary Attack..."):
-                time.sleep(1) # Suspense
-                result = bk.check_weak_password(crack_input.strip().lower())
-            
-            if result:
-                st.error("⚠️ **CRACKED! HASH BERHASIL DIPECAHKAN**")
-                st.metric("Password Asli", result)
-                st.write("Hash ini berasal dari password yang sangat lemah.")
-            else:
-                st.success("🔒 **SAFE (Not Found)**")
-                st.write("Hash tidak ditemukan di database password lemah (Top 20 common).")
+            st.success("Hash tidak ada di database password lemah.")

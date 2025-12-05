@@ -1,8 +1,6 @@
 import streamlit as st
-import time
-import pandas as pd
 import hashlib
-import requests  # Perlu install: pip install requests
+import requests
 import backend as bk  # Pastikan backend.py ada
 
 # ===============================
@@ -10,28 +8,26 @@ import backend as bk  # Pastikan backend.py ada
 # ===============================
 st.set_page_config(
     page_title="MD5 Ultimate Suite",
-    page_icon="🛡️",
+    page_icon="⚡",
     layout="wide",
 )
 
 # ===============================
-# CSS: FIX SIDEBAR, NAV BUTTONS & ACTIVE STATE
+# CSS: UI MODERN & SIDEBAR FIX
 # ===============================
 st.markdown("""
 <style>
-    /* 1. KEMBALIKAN HEADER STREAMLIT AGAR TOMBOL SIDEBAR MUNCUL */
+    /* 1. FIX HEADER & SIDEBAR BUTTON */
     header {
         visibility: visible !important;
         background: transparent !important;
     }
-    
-    /* 2. PAKSA TOMBOL SIDEBAR (HAMBURGER) MUNCUL DI ATAS RUNNING TEXT */
     [data-testid="stSidebarCollapsedControl"] {
         z-index: 9999999 !important;
-        color: #00ffea !important; /* Warna Ikon Hamburger */
-        background-color: rgba(0,0,0,0.5); /* Latar kotak transparan biar jelas */
+        color: #00ffea !important;
+        background-color: rgba(0,0,0,0.5);
         border-radius: 5px;
-        margin-top: 5px; /* Sesuaikan posisi vertikal */
+        margin-top: 5px;
         margin-left: 5px;
     }
 
@@ -47,7 +43,7 @@ st.markdown("""
         top: 0;
         left: 0;
         width: 100%;
-        height: 45px; /* Sedikit diperlebar agar tombol menu muat enak */
+        height: 45px;
         background: #000000;
         border-bottom: 2px solid #0056b3;
         z-index: 999999;
@@ -58,12 +54,12 @@ st.markdown("""
         
     .running-text {
         white-space: nowrap;
-        animation: runText 35s linear infinite;
+        animation: runText 40s linear infinite;
         font-family: 'Verdana', sans-serif;
         font-size: 14px;
         font-weight: bold;
         color: #00ffea;
-        padding-left: 50px; /* Biar gak nabrak tombol sidebar */
+        padding-left: 50px;
     }
         
     @keyframes runText {
@@ -71,21 +67,15 @@ st.markdown("""
         100% { transform: translateX(-100%); }
     }
 
-    /* Padding konten utama agar tidak ketutupan Running Text */
+    /* Padding konten utama */
     .block-container {
         padding-top: 4rem !important; 
     }
 
-    /* ============================================================ */
-    /* ====== MODIFIKASI TOMBOL SIDEBAR (NAVIGASI) ================ */
-    /* ============================================================ */
-    
-    /* 1. Sembunyikan lingkaran radio button default */
+    /* ====== TOMBOL NAVIGASI SIDEBAR ====== */
     [data-testid="stSidebar"] [data-testid="stRadio"] > div[role="radiogroup"] > label > div:first-child {
         display: none !important;
     }
-
-    /* 2. Ubah label teks menjadi TOMBOL KOTAK SERAGAM */
     [data-testid="stSidebar"] [data-testid="stRadio"] > div[role="radiogroup"] > label {
         background: rgba(255, 255, 255, 0.05);
         padding: 12px 15px;
@@ -94,36 +84,27 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.1);
         transition: all 0.3s ease;
         cursor: pointer;
-        
-        /* Bikin lebar sama rata & teks di tengah/kiri */
         display: flex;
         align-items: center;
-        width: 100% !important; /* SOLUSI UKURAN KOTAK TIDAK SAMA */
+        width: 100% !important;
         justify-content: flex-start;
     }
-
-    /* 3. Efek Hover */
     [data-testid="stSidebar"] [data-testid="stRadio"] > div[role="radiogroup"] > label:hover {
         background: rgba(0, 255, 234, 0.1);
         border-color: #00ffea;
         transform: translateX(5px);
     }
-
-    /* 4. INDIKATOR AKTIF (SOLUSI MENANDAI FITUR YG DIBUKA) */
-    /* Menggunakan selector :has(input:checked) untuk mendeteksi pilihan aktif */
     [data-testid="stSidebar"] [data-testid="stRadio"] > div[role="radiogroup"] > label:has(input:checked) {
         background: linear-gradient(90deg, rgba(0,86,179,0.4), transparent) !important;
-        border-left: 5px solid #00ffea !important; /* Garis Cyan di kiri */
-        color: #00ffea !important; /* Teks jadi cyan */
+        border-left: 5px solid #00ffea !important;
+        color: #00ffea !important;
         font-weight: bold;
         box-shadow: 0 0 15px rgba(0, 255, 234, 0.15);
     }
-
-    /* 5. Background Sidebar */
     [data-testid="stSidebar"] {
         background: #050a15 !important;
         border-right: 1px solid #1f3a5f;
-        margin-top: 45px; /* Turunkan sidebar di bawah running text */
+        margin-top: 45px;
     }
 
     /* ====== CARD STYLES ====== */
@@ -133,6 +114,11 @@ st.markdown("""
         border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.1);
         margin-bottom: 15px;
+    }
+    .info-text {
+        color: #aab;
+        font-size: 14px;
+        margin-bottom: 10px;
     }
     
     .neon-title {
@@ -148,7 +134,7 @@ st.markdown("""
 <!-- Running Text -->
 <div class="running-text-container">
     <div class="running-text">
-        ⚠️ INFO PENTING: MD5 tidak lagi disarankan untuk keamanan password tingkat tinggi karena risiko collision. Gunakan hanya untuk verifikasi integritas file & data non-krusial. ⚠️
+        ℹ️ INFO: Aplikasi ini menggunakan algoritma MD5 (Digital Fingerprint). Gunakan untuk memverifikasi integritas file atau pemindaian keamanan cepat.
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -157,7 +143,6 @@ st.markdown("""
 # FUNGSI API (VIRUSTOTAL)
 # ===============================
 def check_vt_api(file_hash, api_key):
-    """Mengambil data langsung dari Database Threat Intel"""
     url = f"https://www.virustotal.com/api/v3/files/{file_hash}"
     headers = {"x-apikey": api_key}
     try:
@@ -177,105 +162,159 @@ def check_vt_api(file_hash, api_key):
 # SIDEBAR NAVIGATION
 # ===============================
 with st.sidebar:
-    st.markdown("<h2 style='color:#00ffea; text-align: center; margin-top: 10px;'>🛡️ MD5 Suite</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #8899aa; font-size: 12px;'>Futuristic Edition v8.0 (Final)</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#00ffea; text-align: center; margin-top: 10px;'>⚡MD5 Toolkit</h2>", unsafe_allow_html=True)
     st.write("") # Spacer
     
-    # Menu Navigasi
+    # --- Menu Utama ---
     menu = st.radio("MAIN MENU", [
-        "🏠 Single Check", 
-        "📝 Text to MD5",
-        "🚀 Batch Processor", 
-        "🦠 Threat Intelligence",
-        "🔓 Hash Cracker",
-        "💪 Password Strength"
+        "📂 File Integrity Check",
+        "🔏 MD5 Generator",         # <-- NAMA DIUBAH BIAR LEBIH KEREN
+        "📦 Multiple File Hashing",
+        "🛡️ File Safety Scan"
     ])
     st.markdown("---")
 
 st.markdown(f"<div class='neon-title'>{menu}</div>", unsafe_allow_html=True)
 
 # =========================================================
-# MODE 1 — SINGLE CHECK
+# MODE 1 — FILE INTEGRITY CHECK
 # =========================================================
-if menu == "🏠 Single Check":
-    tab1, tab2 = st.tabs(["📂 File vs File", "📝 File vs MD5"])
+if menu == "📂 File Integrity Check":
+    st.markdown("""
+    <div class='glass-card'>
+        <b>ℹ️ Tentang Fitur Ini:</b><br>
+        <span class='info-text'>
+        Memastikan file yang Anda miliki <b>asli dan tidak rusak</b>. Gunakan ini untuk membandingkan file dengan file lain, atau dengan kode hash dari website download.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    tab1, tab2 = st.tabs(["Compare Two Files", "Verify with MD5"])
     
     with tab1:
-        st.markdown("<div class='glass-card'>Bandingkan dua file untuk melihat apakah identik.</div>", unsafe_allow_html=True)
+        st.write("### Bandingkan 2 File")
+        st.caption("Upload dua file untuk melihat apakah isinya identik.")
         c1, c2 = st.columns(2)
-        with c1: f1 = st.file_uploader("Upload File A", key="fileA")
-        with c2: f2 = st.file_uploader("Upload File B", key="fileB")
+        with c1: f1 = st.file_uploader("Upload File Pertama", key="fileA")
+        with c2: f2 = st.file_uploader("Upload File Kedua", key="fileB")
             
         if f1 and f2:
-            with st.spinner("Checking..."):
+            with st.spinner("Sedang membandingkan..."):
                 h1, _ = bk.calculate_md5(f1)
                 h2, _ = bk.calculate_md5(f2)
             
             if h1 == h2:
-                st.success("✅ File IDENTIK (MD5 MATCH)")
+                st.success("✅ HASIL: Identik (Isi file sama persis)")
             else:
-                st.error("❌ File BERBEDA (MD5 MISMATCH)")
-            st.code(f"MD5 A: {h1}\nMD5 B: {h2}")
+                st.error("❌ HASIL: Berbeda (Isi file tidak sama)")
+            st.code(f"Kode File 1: {h1}\nKode File 2: {h2}")
 
     with tab2:
-        st.markdown("<div class='glass-card'>Verifikasi integritas file dengan kode hash.</div>", unsafe_allow_html=True)
+        st.write("### Verifikasi dengan Kode")
+        st.caption("Cocokkan file dengan kode MD5 yang Anda miliki.")
         file = st.file_uploader("Upload File", key="fileMd5")
-        md5_text = st.text_input("Paste kode MD5 asli disini")
+        md5_text = st.text_input("Tempel kode MD5 asli disini")
         
         if file and md5_text:
             file_hash, _ = bk.calculate_md5(file)
             if file_hash == md5_text.lower().strip():
                 st.success("🎉 VERIFIED: File Asli & Aman")
             else:
-                st.error("⚠️ WARNING: Hash tidak cocok!")
-            st.code(f"Hash File: {file_hash}")
+                st.error("⚠️ WARNING: Kode tidak cocok! File mungkin rusak atau palsu.")
+            st.code(f"Kode File Anda: {file_hash}")
 
 # =========================================================
-# MODE 2 — TEXT TO MD5
+# MODE 2 — MD5 GENERATOR (DITINGKATKAN)
 # =========================================================
-elif menu == "📝 Text to MD5":
-    st.markdown("<div class='glass-card'>Ubah teks biasa menjadi hash MD5.</div>", unsafe_allow_html=True)
+elif menu == "🔏 MD5 Generator":
+    st.markdown("""
+    <div class='glass-card'>
+        <b>ℹ️ Tentang Fitur Ini:</b><br>
+        <span class='info-text'>
+        Membuat kode MD5 (Hashing) dari <b>Teks</b> maupun <b>File Tunggal</b>. Fitur ini berguna jika Anda ingin mengetahui kode hash tanpa melakukan verifikasi/pembandingan.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
     
-    text_input = st.text_area("Masukkan Teks/Kalimat", height=100)
+    # Menggunakan Tabs agar support Text dan File
+    tab_txt, tab_file = st.tabs(["🔤 From Text", "📂 From File"])
     
-    if st.button("Generate Hash"):
-        if text_input:
-            result = hashlib.md5(text_input.encode()).hexdigest()
-            st.success("✅ Generated Successfully")
-            st.code(result, language="text")
-        else:
-            st.warning("Masukkan teks dulu.")
+    # --- GENERATE DARI TEXT ---
+    with tab_txt:
+        st.write("### Teks ke MD5")
+        text_input = st.text_area("Masukkan Teks/Kalimat", height=100, placeholder="Ketik sesuatu...")
+        if st.button("Generate Hash Teks"):
+            if text_input:
+                result = hashlib.md5(text_input.encode()).hexdigest()
+                st.success("✅ Berhasil")
+                st.code(result, language="text")
+            else:
+                st.warning("Masukkan teks dulu.")
+
+    # --- GENERATE DARI FILE ---
+    with tab_file:
+        st.write("### File ke MD5")
+        uploaded_file = st.file_uploader("Upload satu file", key="single_gen")
+        if uploaded_file:
+            with st.spinner("Menghitung hash..."):
+                # Hitung hash
+                file_hash, _ = bk.calculate_md5(uploaded_file)
+                st.success("✅ Berhasil")
+                st.write("Kode MD5 File:")
+                st.code(file_hash, language="text")
+                st.caption(f"Nama File: {uploaded_file.name}")
 
 # =========================================================
-# MODE 3 — BATCH PROCESSOR
+# MODE 3 — Multiple File Hashing
 # =========================================================
-elif menu == "🚀 Batch Processor":
-    st.markdown("<div class='glass-card'>Generate hash untuk banyak file sekaligus.</div>", unsafe_allow_html=True)
-    files = st.file_uploader("Pilih banyak file", accept_multiple_files=True)
+elif menu == "📦 Multiple File Hashing":
+    st.markdown("""
+    <div class='glass-card'>
+        <b>ℹ️ Tentang Fitur Ini:</b><br>
+        <span class='info-text'>
+        Memproses <b>banyak file sekaligus</b>. Jika Anda perlu mendata kode unik (checksum) dari ratusan file secara otomatis, gunakan fitur ini.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    files = st.file_uploader("Pilih banyak file (Drag & Drop)", accept_multiple_files=True)
     
     if files:
-        if st.button("🚀 Proses Semua File"):
-            with st.spinner("Sedang menghitung hash..."):
+        if st.button("🚀 Mulai Proses"):
+            with st.spinner("Sedang menghitung..."):
                 df = bk.process_batch(files)
             st.dataframe(df, use_container_width=True)
-            st.download_button("⬇️ Download CSV", bk.convert_df_to_csv(df), "md5_report.csv")
+            st.download_button("⬇️ Download Laporan (CSV)", bk.convert_df_to_csv(df), "laporan_file.csv")
 
 # =========================================================
-# MODE 4 — THREAT INTELLIGENCE
+# MODE 4 — FILE SAFETY SCAN
 # =========================================================
-elif menu == "🦠 Threat Intelligence":
-    st.markdown("<div class='glass-card'>Cek reputasi file di database global threats (API Integrated).</div>", unsafe_allow_html=True)
+elif menu == "🛡️ File Safety Scan":
+    st.markdown("""
+    <div class='glass-card'>
+        <b>ℹ️ Tentang Fitur Ini:</b><br>
+        <span class='info-text'>
+        Mengecek apakah sebuah file <b>berbahaya (virus/malware)</b>. 
+        <br>🔒 <b>Privasi Dijamin:</b> File Anda <b>TIDAK</b> diupload. Kami hanya mengirimkan "sidik jari" (MD5) file ke database 
+        <a href='https://www.virustotal.com/' target='_blank' style='color:#00ffea; text-decoration:none; font-weight:bold;'>VirusTotal™</a>.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
     
+    # API KEY (Hardcoded sesuai input user sebelumnya)
     API_KEY_PERMANEN = "4c3d902295a016e36b6b59b03071db642fae870b15b7734513d235a661b742e9" 
 
     if API_KEY_PERMANEN:
         api_key = API_KEY_PERMANEN
     else:
-        with st.expander("⚙️ Konfigurasi API"):
-            api_key = st.text_input("Masukkan API Key", type="password", help="Dapatkan API Key gratis dari VirusTotal")
+        with st.expander("⚙️ Pengaturan Akses"):
+            api_key = st.text_input("Masukkan Kunci Akses (API Key)", type="password")
     
-    file = st.file_uploader("Upload file mencurigakan")
-    md5_text = st.text_input("Atau paste hash MD5 disini")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        file = st.file_uploader("Opsi 1: Upload File (Otomatis Hitung Hash)")
+    with col_b:
+        md5_text = st.text_input("Opsi 2: Masukkan Kode Hash Manual")
     
     md5_hash = None
     if file: 
@@ -284,20 +323,19 @@ elif menu == "🦠 Threat Intelligence":
         md5_hash = md5_text
 
     if md5_hash:
-        st.info(f"Target Hash: `{md5_hash}`")
+        st.info(f"Kode Unik File: `{md5_hash}`")
         
-        if st.button("🔍 Scan Database"):
+        if st.button("🔍 Cek Keamanan"):
             if not api_key:
-                st.warning("⚠️ Masukkan API Key terlebih dahulu.")
-                st.markdown(f"[Klik disini untuk cek manual di Web](https://www.virustotal.com/gui/file/{md5_hash})")
+                st.warning("⚠️ Kunci akses belum diisi.")
             else:
-                with st.spinner("Menghubungi server intelijen..."):
+                with st.spinner("Sedang menghubungi database keamanan..."):
                     data = check_vt_api(md5_hash, api_key)
                 
                 if data == "NOT_FOUND":
-                    st.warning("🤔 File tidak ditemukan di database. Mungkin file baru atau belum pernah di-scan.")
+                    st.warning("🤔 File tidak dikenal (Unknown). File mungkin bersih atau belum pernah dideteksi sebelumnya.")
                 elif data == "INVALID_KEY":
-                    st.error("❌ API Key Salah / Tidak Valid.")
+                    st.error("❌ Kunci akses salah.")
                 elif data == "ERROR" or data == "CONNECTION_ERROR":
                     st.error("❌ Gagal terhubung ke server.")
                 else:
@@ -305,97 +343,26 @@ elif menu == "🦠 Threat Intelligence":
                     stats = attr['last_analysis_stats']
                     malicious = stats['malicious']
                     
-                    st.write("### 📊 Laporan Analisis")
+                    st.write("### 📊 Hasil Analisis")
                     
                     col1, col2, col3 = st.columns(3)
-                    col1.metric("Malicious (Berbahaya)", malicious, delta_color="inverse")
-                    col2.metric("Suspicious (Curiga)", stats['suspicious'])
-                    col3.metric("Harmless (Aman)", stats['harmless'])
+                    col1.metric("Terdeteksi Bahaya", malicious, delta_color="inverse")
+                    col2.metric("Mencurigakan", stats['suspicious'])
+                    col3.metric("Aman (Clean)", stats['harmless'])
                     
                     if malicious > 0:
-                        st.error(f"🚨 BERBAHAYA! Terdeteksi oleh {malicious} vendor keamanan.")
+                        st.error(f"🚨 BERBAHAYA! File ini ditandai bahaya oleh {malicious} antivirus.")
                     else:
-                        st.success("✅ AMAN. Tidak ada ancaman terdeteksi.")
+                        st.success("✅ AMAN. Tidak ada ancaman yang ditemukan pada file ini.")
                     
-                    with st.expander("Lihat Detail Vendor Antivirus"):
+                    with st.expander("Lihat Detail Deteksi"):
                         st.json(stats)
 
                     st.markdown(f"""
                     <div style='background: rgba(0, 80, 255, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #0056b3; margin-top: 25px; font-size: 13px;'>
-                        ℹ️ <b>Sumber Data:</b> Laporan ini diambil secara real-time dari database <b>VirusTotal™</b>.<br>
+                        ℹ️ <b>Sumber Data:</b> Laporan diambil dari database <b>VirusTotal™</b>.<br>
                         🔗 <a href="https://www.virustotal.com/gui/file/{md5_hash}" target="_blank" style="color: #00ffea; text-decoration: none; font-weight: bold;">
-                            Klik disini untuk melihat laporan lengkap di Website Resmi ↗
+                            Lihat laporan lengkap di Website Resmi ↗
                         </a>
                     </div>
                     """, unsafe_allow_html=True)
-
-# =========================================================
-# MODE 5 — HASH CRACKER
-# =========================================================
-elif menu == "🔓 Hash Cracker":
-    st.markdown("""
-    <div class='glass-card'>
-        <b>🛠️ Dictionary Attack Tool</b><br>
-        Mencoba memecahkan hash MD5 kembali menjadi teks menggunakan database password umum.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    hash_input = st.text_input("Masukkan Target MD5 Hash")
-    
-    if st.button("💀 CRACK HASH", type="primary"):
-        if not hash_input:
-            st.warning("Mohon isi hash terlebih dahulu.")
-        else:
-            status = st.status("🚀 Memulai serangan dictionary...", expanded=True)
-            status.write("📂 Memuat database...")
-            time.sleep(0.5)
-            
-            try:
-                result = bk.check_rockyou(hash_input, wordlist_path="rockyou.txt.tar.gz")
-                
-                status.update(label="Selesai!", state="complete", expanded=False)
-
-                if result == "ERROR_NO_FILE":
-                    st.error("❌ Database wordlist tidak ditemukan di server.")
-                elif result and not result.startswith("ERROR"):
-                    st.success("✅ PASSWORD DITEMUKAN!")
-                    st.balloons()
-                    st.markdown(f"## 🔓 {result}")
-                elif result is None:
-                    st.warning("🔒 GAGAL: Hash tidak ditemukan di database.")
-                else:
-                    st.error(result)
-            except Exception as e:
-                status.update(label="Error", state="error")
-                st.error("Terjadi kesalahan sistem.")
-
-# =========================================================
-# MODE 6 — PASSWORD STRENGTH
-# =========================================================
-elif menu == "💪 Password Strength":
-    st.markdown("<div class='glass-card'>Analisa kekuatan password teks biasa.</div>", unsafe_allow_html=True)
-    
-    pwd = st.text_input("Ketik Password", type="password")
-    
-    if pwd:
-        skor = 0
-        checks = {
-            "Min 8 Karakter": len(pwd) >= 8,
-            "Huruf Besar & Kecil": any(c.islower() for c in pwd) and any(c.isupper() for c in pwd),
-            "Angka": any(c.isdigit() for c in pwd),
-            "Simbol Unik": any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?/" for c in pwd),
-            "Panjang 12+": len(pwd) >= 12,
-        }
-        
-        for check in checks.values():
-            if check: skor += 1
-            
-        labels = ["Sangat Lemah", "Lemah", "Cukup", "Kuat", "Sangat Kuat"]
-        final_label = labels[max(0, skor - 1)]
-        
-        st.markdown(f"### Skor: {skor}/5 — {final_label}")
-        st.progress(skor / 5)
-        
-        st.write("---")
-        for rule, passed in checks.items():
-            st.write(f"{'✅' if passed else '❌'} {rule}")

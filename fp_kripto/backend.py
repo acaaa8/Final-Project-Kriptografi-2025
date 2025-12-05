@@ -1,8 +1,6 @@
 import hashlib
 import pandas as pd
 import time
-import os
-import tarfile
 
 # ================================
 # Utility: Get File Size Safely
@@ -32,6 +30,7 @@ def calculate_md5(file_obj):
     end = time.time()
     file_obj.seek(0)
 
+    # Hitung kecepatan proses
     size_mb = total_size / (1024 * 1024)
     duration = max(end - start, 0.0001)
     speed = size_mb / duration
@@ -55,80 +54,7 @@ def process_batch(uploaded_files):
     return pd.DataFrame(rows)
 
 # ================================
-# ROCKYOU CRACKER (VERSI .TAR.GZ FIX) 💀
-# ================================
-def check_rockyou(target_hash, wordlist_path="rockyou.txt"):
-    target_hash = target_hash.strip().lower()
-    
-    # 1. Cek apakah file ada
-    if not os.path.exists(wordlist_path):
-        # Coba cek versi .tar.gz jika user lupa menulis ekstensi
-        if os.path.exists(wordlist_path + ".tar.gz"):
-            wordlist_path += ".tar.gz"
-        else:
-            return "ERROR_NO_FILE"
-
-    tar_handle = None
-    file_iterator = None
-
-    try:
-        # LOGIKA 1: Jika file kompresi (.tar.gz)
-        if wordlist_path.endswith(".tar.gz"):
-            tar_handle = tarfile.open(wordlist_path, "r:gz")
-            
-            # --- CARI FILE YANG BENAR (BUKAN FOLDER) ---
-            target_member = None
-            for member in tar_handle.getmembers():
-                # Pastikan ini file, dan bukan file sampah metadata (._)
-                if member.isfile() and not member.name.startswith("._") and "rockyou" in member.name:
-                    target_member = member
-                    break 
-            
-            # Jika filter nama 'rockyou' gagal, ambil file besar pertama
-            if target_member is None:
-                for member in tar_handle.getmembers():
-                    if member.isfile() and member.size > 1000000:
-                        target_member = member
-                        break
-            
-            if target_member is None:
-                return "ERROR: Arsip .tar.gz kosong atau rusak!"
-
-            # Ekstrak file yang ditemukan
-            file_iterator = tar_handle.extractfile(target_member)
-        
-        # LOGIKA 2: Jika file teks biasa (.txt)
-        else:
-            file_iterator = open(wordlist_path, "rb")
-
-        # PROSES CRACKING
-        found_password = None
-        
-        for line_bytes in file_iterator:
-            try:
-                # Decode latin-1 (standar rockyou)
-                line_str = line_bytes.decode("latin-1").strip()
-                
-                # Cek Hash
-                hashed_attempt = hashlib.md5(line_str.encode("utf-8")).hexdigest()
-                
-                if hashed_attempt == target_hash:
-                    found_password = line_str
-                    break # KETEMU!
-            except:
-                continue 
-
-        # Tutup file
-        if tar_handle: tar_handle.close()
-        if file_iterator: file_iterator.close()
-
-        return found_password
-
-    except Exception as e:
-        return f"ERROR SYSTEM: {str(e)}"
-
-# ================================
-# VirusTotal Link
+# VirusTotal Link Helper
 # ================================
 def get_virustotal_link(md5_hash):
     return f"https://www.virustotal.com/gui/file/{md5_hash}"

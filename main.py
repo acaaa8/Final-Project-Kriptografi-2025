@@ -7,7 +7,7 @@ import backend as bk  # Pastikan backend.py ada
 # PAGE CONFIG
 # ===============================
 st.set_page_config(
-    page_title="MD5 Ultimate Suite",
+    page_title="MD5 Toolkit",
     page_icon="⚡",
     layout="wide",
 )
@@ -184,7 +184,7 @@ if menu == "📂 File Integrity Check":
     <div class='glass-card'>
         <b>ℹ️ Tentang Fitur Ini:</b><br>
         <span class='info-text'>
-        Memastikan file yang Anda miliki <b>asli dan tidak rusak</b>. Gunakan ini untuk membandingkan file dengan file lain, atau dengan kode hash dari website download.
+        Memastikan file yang Anda punya <b>asli dan tidak rusak</b>. Gunakan ini untuk membandingkan file dengan file lain, atau dengan kode hash dari website download.
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -193,7 +193,7 @@ if menu == "📂 File Integrity Check":
     
     with tab1:
         st.write("### Bandingkan 2 File")
-        st.caption("Upload dua file untuk melihat apakah isinya identik.")
+        st.caption("Upload dua file untuk melihat apakah isinya sama.")
         c1, c2 = st.columns(2)
         with c1: f1 = st.file_uploader("Upload File Pertama", key="fileA")
         with c2: f2 = st.file_uploader("Upload File Kedua", key="fileB")
@@ -204,14 +204,14 @@ if menu == "📂 File Integrity Check":
                 h2, _ = bk.calculate_md5(f2)
             
             if h1 == h2:
-                st.success("✅ HASIL: Identik (Isi file sama persis)")
+                st.success("✅ HASIL: SAMA (Isi file sama persis)")
             else:
                 st.error("❌ HASIL: Berbeda (Isi file tidak sama)")
             st.code(f"Kode File 1: {h1}\nKode File 2: {h2}")
 
     with tab2:
         st.write("### Verifikasi dengan Kode")
-        st.caption("Cocokkan file dengan kode MD5 yang Anda miliki.")
+        st.caption("Cocokkan file dengan kode MD5 yang Anda punya.")
         file = st.file_uploader("Upload File", key="fileMd5")
         md5_text = st.text_input("Tempel kode MD5 asli disini")
         
@@ -231,7 +231,7 @@ elif menu == "🔏 MD5 Generator":
     <div class='glass-card'>
         <b>ℹ️ Tentang Fitur Ini:</b><br>
         <span class='info-text'>
-        Membuat kode MD5 (Hashing) dari <b>Teks</b> maupun <b>File Tunggal</b>. Fitur ini berguna jika Anda ingin mengetahui kode hash tanpa melakukan verifikasi/pembandingan.
+        Membuat kode MD5 (Hashing) dari <b>Teks</b> maupun <b>File</b>. Fitur ini berguna jika Anda ingin mengetahui kode hash tanpa melakukan pembandingan dengan file lain.
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -295,7 +295,7 @@ elif menu == "🛡️ File Safety Scan":
         <b>ℹ️ Tentang Fitur Ini:</b><br>
         <span class='info-text'>
         Mengecek apakah sebuah file <b>berbahaya (virus/malware)</b>. 
-        <br>🔒 <b>Privasi Dijamin:</b> File Anda <b>TIDAK</b> diupload. Kami hanya mengirimkan "sidik jari" (MD5) file ke database 
+        <br>🔒 <b>Privasi Dijamin:</b> File Anda <b>TIDAK</b> diupload. Kami hanya mengirimkan Hash MD5 file ke database 
         <a href='https://www.virustotal.com/' target='_blank' style='color:#00ffea; text-decoration:none; font-weight:bold;'>VirusTotal™</a>.
         </span>
     </div>

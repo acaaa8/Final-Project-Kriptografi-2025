@@ -7,7 +7,7 @@ import backend as bk  # Pastikan backend.py ada
 # PAGE CONFIG
 # ===============================
 st.set_page_config(
-    page_title="MD5 Toolkit",
+    page_title="MD5 FileVerifier",
     page_icon="⚡",
     layout="wide",
 )
@@ -37,7 +37,7 @@ st.markdown("""
         color: #d9e6ff;
     }
 
-    /* ====== RUNNING TEXT (TOP FIXED) ====== */
+    /* ====== RUNNING TEXT TANPA GAP ====== */
     .running-text-container {
         position: fixed;
         top: 0;
@@ -51,20 +51,25 @@ st.markdown("""
         align-items: center;
         overflow: hidden;
     }
-        
+
+    .running-text-wrapper {
+        display: flex;
+        width: max-content;
+        animation: marquee 25s linear infinite;
+    }
+
     .running-text {
         white-space: nowrap;
-        animation: runText 40s linear infinite;
         font-family: 'Verdana', sans-serif;
         font-size: 14px;
         font-weight: bold;
         color: #00ffea;
-        padding-left: 50px;
+        padding-right: 80px; /* jarak antar duplikat */
     }
-        
-    @keyframes runText {
-        0%   { transform: translateX(100%); }
-        100% { transform: translateX(-100%); }
+
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
     }
 
     /* Padding konten utama */
@@ -133,10 +138,12 @@ st.markdown("""
 
 <!-- Running Text -->
 <div class="running-text-container">
-    <div class="running-text">
-        ℹ️ INFO: Aplikasi ini menggunakan algoritma MD5 (Digital Fingerprint). Gunakan untuk memverifikasi integritas file atau pemindaian keamanan cepat.
+    <div class="running-text-wrapper">
+        <div class="running-text">ℹ️ INFO: Aplikasi ini menggunakan algoritma MD5 (Digital Fingerprint). Gunakan untuk memverifikasi integritas file atau pemindaian keamanan cepat.</div>
+        <div class="running-text">ℹ️ INFO: Aplikasi ini menggunakan algoritma MD5 (Digital Fingerprint). Gunakan untuk memverifikasi integritas file atau pemindaian keamanan cepat.</div>
     </div>
 </div>
+
 """, unsafe_allow_html=True)
 
 # ===============================
@@ -162,13 +169,13 @@ def check_vt_api(file_hash, api_key):
 # SIDEBAR NAVIGATION
 # ===============================
 with st.sidebar:
-    st.markdown("<h2 style='color:#00ffea; text-align: center; margin-top: 10px;'>⚡MD5 Toolkit</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#00ffea; text-align: center; margin-top: 10px;'>⚡MD5 FileVerifier</h2>", unsafe_allow_html=True)
     st.write("") # Spacer
     
     # --- Menu Utama ---
     menu = st.radio("MAIN MENU", [
         "📂 File Integrity Check",
-        "🔏 MD5 Generator",         # <-- NAMA DIUBAH BIAR LEBIH KEREN
+        "🔏 MD5 Generator",       
         "📦 Multiple File Hashing",
         "🛡️ File Safety Scan"
     ])
